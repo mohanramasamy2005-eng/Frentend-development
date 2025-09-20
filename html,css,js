@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Study Planner</title>
+    <style>
+        /* CSS for Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+        }
+        input[type="text"], input[type="date"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #357ab7;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #e9f2fa;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        li.completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        li span {
+            cursor: pointer;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📚 Smart Study Planner</h1>
+        <form id="task-form">
+            <input type="text" id="task-input" placeholder="Enter a new study task..." required>
+            <input type="date" id="task-date" required>
+            <button type="submit">Add Task</button>
+        </form>
+        <ul id="task-list"></ul>
+    </div>
+
+    <script>
+        // JavaScript for Functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskForm = document.getElementById('task-form');
+            const taskInput = document.getElementById('task-input');
+            const taskDate = document.getElementById('task-date');
+            const taskList = document.getElementById('task-list');
+
+            // Load tasks from Local Storage when the page loads
+            loadTasks();
+
+            taskForm.addEventListener('submit', (e) => {
+                e.preventDefault(); // Prevents the form from submitting and reloading the page
+                addTask(taskInput.value, taskDate.value);
+                taskInput.value = ''; // Clear the input fields
+                taskDate.value = '';
+            });
+
+            function addTask(taskText, taskDueDate, isCompleted = false) {
+                if (taskText === '') return;
+
+                const li = document.createElement('li');
+                if (isCompleted) {
+                    li.classList.add('completed');
+                }
+
+                // Task content
+                const taskContent = document.createElement('span');
+                taskContent.textContent = `${taskText} (Due: ${taskDueDate})`;
+                taskContent.addEventListener('click', () => {
+                    li.classList.toggle('completed');
+                    saveTasks();
+                });
+
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.addEventListener('click', () => {
+                    taskList.removeChild(li);
+                    saveTasks();
+                });
+
+                li.appendChild(taskContent);
+                li.appendChild(deleteBtn);
+                taskList.appendChild(li);
+
+                saveTasks();
+            }
+
+            function saveTasks() {
+                const tasks = [];
+                document.querySelectorAll('#task-list li').forEach(li => {
+                    tasks.push({
+                        text: li.querySelector('span').textContent,
+                        completed: li.classList.contains('completed')
+                    });
+                });
+                // Save the array of tasks to Local Storage as a string
+                localStorage.setItem('studyTasks', JSON.stringify(tasks));
+            }
+
+            function loadTasks() {
+                // Get tasks from Local Storage and convert them back to an array
+                const tasks = JSON.parse(localStorage.getItem('studyTasks')) || [];
+                tasks.forEach(task => {
+                    const [text, date] = task.text.split(' (Due: ');
+                    addTask(text, date.slice(0, -1), task.completed);
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
